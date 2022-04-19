@@ -2,14 +2,14 @@
 
 class Dungeon
 {
-    private static int seed;
-    private static System.Random random = new Random();
+    private static int seed = Environment.TickCount;
+    private static System.Random random = new Random(seed);
 
-    private static float splitVariance = 0f;    //used to determine variance in bsp splits
-    private static float sizeVariance = 0f;     //used to determine variance in room size
-    private static float doorVariance = 0f;     //used to determine variance in door location
+    private static float splitVariance = .5f;    //used to determine variance in bsp splits
+    private static float sizeVariance = .5f;     //used to determine variance in room size
+    private static float doorVariance = .5f;     //used to determine variance in door location
 
-    private static int minSize = 3;             //minimum size for rooms in any dimension
+    private static int minSize = 4;             //minimum size for rooms in any dimension
 
     private static int depth = 4;               //depth of recursion for bsp algorithm
 
@@ -22,12 +22,21 @@ class Dungeon
 
     static void Main(string[] args)
     {
-        Console.WriteLine("These are the arguments you've supplied:");
-        
-        foreach(string str in args)
+        //parse any command line inputs, if there are any
+        if(args.Length > 0)
         {
-            Console.WriteLine(str);
+            ParseInput(args);
         }
+
+        Console.WriteLine("GENERATING NEW DUNGEON...");
+        Console.WriteLine("Parameters (copy these parameters to save your dungeon):");
+        Console.WriteLine("Size:\t\t\t" + width + "x" + height);
+        Console.WriteLine("Depth:\t\t\t" + depth);
+        Console.WriteLine("Seed:\t\t\t" + seed);
+        Console.WriteLine("Minsize:\t\t" + minSize);
+        Console.WriteLine("Split variance:\t" + splitVariance);
+        Console.WriteLine("Size variance:\t" + sizeVariance);
+        Console.WriteLine("Door variance:\t" + doorVariance);
 
         //this is absolutely the stupidest way to do it, but i must've screwed up somewhere and
         //gotten width and height mixed up (sigh). so basically, we're just gonna swap 'em and
@@ -44,6 +53,231 @@ class Dungeon
         Shrink();
 
         Draw();
+    }
+
+    static void ParseInput(string[] args)
+    {
+        if(args[0] == "-help")
+        {
+            Console.WriteLine("Dungeon Generator v1.0 Help:");
+            Console.WriteLine("");
+            Console.WriteLine("Arg          Params  : Description");
+            Console.WriteLine("");
+            Console.WriteLine("-size        x y     : sets width to x and height to y (default 80 80)");
+            Console.WriteLine("-depth       d       : sets recursive depth to d (default 4)");
+            Console.WriteLine("                       depth determines how many rooms are generated. there will");
+            Console.WriteLine("                       be 2^depth rooms");
+            Console.WriteLine("-seed        s       : sets seed to s (defaults to a random value)");
+            Console.WriteLine("-minsize     ms      : sets minimum room size (on either axis) to ms (default 4)");
+            Console.WriteLine("");
+            Console.WriteLine("For the following commands, both decimal and string values are accepted.");
+            Console.WriteLine("If a decimal value between 0 and 1 is provided, it will be used. Otherwise,");
+            Console.WriteLine("you can use 'none', 'low', 'med', 'high', and 'max'.");
+            Console.WriteLine("The default for all of these is 'med'.");
+            Console.WriteLine("");
+            Console.WriteLine("-splitvar    spv     : sets the split variance to spv");
+            Console.WriteLine("-sizevar     szv     : sets the size variance to szv");
+            Console.WriteLine("-doorvar     dv      : sets the door variance to dv");
+            Console.WriteLine("");
+            Console.WriteLine("Note: It is best to redirect your output to a file!");
+            Console.WriteLine("Use the '>' operator after the executable, and enter a filename to write to.");
+            return;
+        }
+
+        int index = 0;
+        while(index < args.Length)
+        {
+            switch(args[index])
+            {
+                case "-size":
+                    try
+                    {
+                        width = Int32.Parse(args[index + 1]);
+                        height = Int32.Parse(args[index + 2]);
+                        index++; //must increment index one additional amount
+                    }
+                    catch(FormatException)
+                    {
+                        InvalidInput(args[index], "", false);
+                        return;
+                    }
+                    break;
+                case "-depth":
+                    try
+                    {
+                        depth = Int32.Parse(args[index + 1]);
+                    }
+                    catch(FormatException)
+                    {
+                        InvalidInput(args[index], args[index + 1], false);
+                        return;
+                    }
+                    break;
+                case "-seed":
+                    try
+                    {
+                        seed = Int32.Parse(args[index + 1]);
+                        random = new Random(seed);
+                    }
+                    catch(FormatException)
+                    {
+                        InvalidInput(args[index], args[index + 1], false);
+                        return;
+                    }
+                    break;
+                case "-minsize":
+                    try
+                    {
+                        minSize = Int32.Parse(args[index + 1]);
+                    }
+                    catch(FormatException)
+                    {
+                        InvalidInput(args[index], args[index + 1], false);
+                        return;
+                    }
+                    break;
+                case "-splitvar":
+                    if(args[index + 1] == "none")
+                    {
+                        splitVariance = 0f;
+                    }
+                    else if(args[index + 1] == "low")
+                    {
+                        splitVariance = .25f;
+                    }
+                    else if(args[index + 1] == "med")
+                    {
+                        splitVariance = .5f;
+                    }
+                    else if(args[index + 1] == "high")
+                    {
+                        splitVariance = .75f;
+                    }
+                    else if(args[index + 1] == "max")
+                    {
+                        splitVariance = 1f;
+                    }
+                    else
+                    {
+                        try
+                        {
+                            splitVariance = float.Parse(args[index + 1]);
+                            if(splitVariance < 0 || splitVariance > 1)
+                            {
+                                throw new FormatException();
+                            }
+                        }
+                        catch(FormatException)
+                        {
+                            InvalidInput(args[index], args[index + 1], false);
+                            return;
+                        }
+                    }
+                    break;
+                case "-sizevar":
+                    if(args[index + 1] == "none")
+                    {
+                        sizeVariance = 0f;
+                    }
+                    else if(args[index + 1] == "low")
+                    {
+                        sizeVariance = .25f;
+                    }
+                    else if(args[index + 1] == "med")
+                    {
+                        sizeVariance = .5f;
+                    }
+                    else if(args[index + 1] == "high")
+                    {
+                        sizeVariance = .75f;
+                    }
+                    else if(args[index + 1] == "max")
+                    {
+                        sizeVariance = 1f;
+                    }
+                    else
+                    {
+                        try
+                        {
+                            sizeVariance = float.Parse(args[index + 1]);
+                            if(sizeVariance < 0 || sizeVariance > 1)
+                            {
+                                throw new FormatException();
+                            }
+                        }
+                        catch(FormatException)
+                        {
+                            InvalidInput(args[index], args[index + 1], false);
+                            return;
+                        }
+                    }
+                    break;
+                case "-doorvar":
+                    if(args[index + 1] == "none")
+                    {
+                        doorVariance = 0f;
+                    }
+                    else if(args[index + 1] == "low")
+                    {
+                        doorVariance = .25f;
+                    }
+                    else if(args[index + 1] == "med")
+                    {
+                        doorVariance = .5f;
+                    }
+                    else if(args[index + 1] == "high")
+                    {
+                        doorVariance = .75f;
+                    }
+                    else if(args[index + 1] == "max")
+                    {
+                        doorVariance = 1f;
+                    }
+                    else
+                    {
+                        try
+                        {
+                            doorVariance = float.Parse(args[index + 1]);
+                            if(doorVariance < 0 || doorVariance > 1)
+                            {
+                                throw new FormatException();
+                            }
+                        }
+                        catch(FormatException)
+                        {
+                            InvalidInput(args[index], args[index + 1], false);
+                            return;
+                        }
+                    }
+                    break;
+                default:
+                    InvalidInput(args[index], "", true);
+                    return;
+            }
+
+            index += 2;
+        }
+    }
+
+    static void InvalidInput(String arg, String value, bool noVal)
+    {
+        TextWriter errorWriter = Console.Error;
+
+        if(noVal)
+        {
+            errorWriter.WriteLine("ERROR: Invalid argument '" + arg + "'");
+        }
+        //slightly different error message for -size
+        else if(arg == "-size")
+        {
+            errorWriter.WriteLine("ERROR: Invalid parameters for '-size'");
+        }
+        else
+        {
+            errorWriter.WriteLine("ERROR: Parameter '" + value + "' is not valid for arg '" + arg + "'");
+        }
+        
+        return;
     }
 
     static void BinarySpacePartition(Room room, int levelsToGo)
