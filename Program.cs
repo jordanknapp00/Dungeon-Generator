@@ -41,6 +41,8 @@ class Dungeon
 
         BinarySpacePartition(startRoom, depth);
 
+        Shrink();
+
         Draw();
     }
 
@@ -274,16 +276,31 @@ class Dungeon
             Console.WriteLine();
         }
     }
+
+    static void Shrink()
+    {
+        //for each room, shrink it horizontally and vertically by some amount, based on
+        //sizeVariance
+        foreach(Room room in rooms)
+        {
+            Console.WriteLine("Room initial dimensions:");
+            Console.WriteLine("Left: " + room.leftWall + ", Right: " + room.rightWall + ", Bottom: " + room.bottomWall + ", Top: " + room.topWall);
+            
+            //the shrinking algorithm will go here
+
+            Console.WriteLine("Room post-shrink dimensions:");
+            Console.WriteLine("Left: " + room.leftWall + ", Right: " + room.rightWall + ", Bottom: " + room.bottomWall + ", Top: " + room.topWall);
+            Console.WriteLine();
+        }
+    }
 }
 
 class Room
 {
-    //room wall positions are gettable, but not settable after creation.
-    //this may change when the shrinking algorithm is put in place
-    public int leftWall { get; }
-    public int rightWall { get; }
-    public int topWall { get; }
-    public int bottomWall { get; }
+    public int leftWall;
+    public int rightWall;
+    public int topWall;
+    public int bottomWall;
 
     public char id;
 
