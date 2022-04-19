@@ -14,7 +14,7 @@ class Dungeon
     private static int depth = 4;               //depth of recursion for bsp algorithm
 
     private static int width = 80;
-    private static int height = 40;
+    private static int height = 80;
 
     private static List<Room> rooms = new List<Room>();
 
@@ -29,6 +29,13 @@ class Dungeon
             Console.WriteLine(str);
         }
 
+        //this is absolutely the stupidest way to do it, but i must've screwed up somewhere and
+        //gotten width and height mixed up (sigh). so basically, we're just gonna swap 'em and
+        //act like nothing's wrong.
+        int temp = width;
+        width = height;
+        height = temp;
+
         //we start with a room that's the size of the entire area. it will be subdivided
         Room startRoom = new Room(0, width - 1, 0, height - 1);
 
@@ -41,7 +48,7 @@ class Dungeon
     {
         //check base cases first
         //stop when we've reached the desired depth, or if the current room reached the min size
-        if(levelsToGo == depth || room.rightWall - room.leftWall < minSize || room.topWall - room.bottomWall < minSize)
+        if(levelsToGo == 0 || room.rightWall - room.leftWall < minSize || room.topWall - room.bottomWall < minSize)
         {
             room.id = currID++;
             rooms.Add(room);
@@ -167,9 +174,105 @@ class Dungeon
         return (int) Math.Round(midPoint, 0);
     }
 
+    //function for drawing the map to the console
+    //
+    //'.' = void space
+    //' ' = open space
+    //'+' = room corner
+    //'O' = tunnel
+    //'H' = vertical door
+    //'I' = horizontal door
+    //'|' = vertical wall
+    //'-' = horizontal wall
     static void Draw()
     {
-        //whoops not implemented yet
+        char[,] map = new char[width, height];
+
+        //begin by filling the entire space with void.
+        //the requisite parts will be drawn over later
+        for(int col = 0; col < width; ++col)
+        {
+            for(int row = 0; row < height; ++row)
+            {
+                map[col, row] = '.';
+            }
+        }
+
+        foreach(Room room in rooms)
+        {
+            int left = room.leftWall;
+            int right = room.rightWall;
+            int bottom = room.bottomWall;
+            int top = room.topWall;
+
+            //place horizontal lines for tops and bottoms of rooms, ignoring corners
+            for(int col = left + 1; col < right; ++col)
+            {
+                map[col, bottom] = '-';
+                map[col, top] = '-';
+            }
+
+            //place vertical lines for sides of rooms, ignoring corners
+            for(int row = bottom + 1; row < top; ++row)
+            {
+                map[left, row] = '|';
+                map[right, row] = '|';
+            }
+
+            //fill rooms with empty space
+            for(int col = left + 1; col < right; ++col)
+            {
+                for(int row = bottom + 1; row < top; ++row)
+                {
+                    map[col, row] = ' ';
+                }
+            }
+        }
+
+        //apply corner tile for each room, as well as room name in the middle
+        foreach(Room room in rooms)
+        {
+            int left = room.leftWall;
+            int right = room.rightWall;
+            int bottom = room.bottomWall;
+            int top = room.topWall;
+
+            map[left, bottom] = '+';
+            map[right, bottom] = '+';
+            map[left, top] = '+';
+            map[right, top] = '+';
+
+            map[(left + right) / 2, (bottom + top) / 2] = room.id;
+        }
+
+        foreach(Room room in rooms)
+        {
+            foreach(Door door in room.doors)
+            {
+                int col = door.x;
+                int row = door.y;
+
+                if(door.horizontal)
+                {
+                    map[col, row] = 'I';
+                }
+                else
+                {
+                    map[col, row] = 'H';
+                }
+            }
+        }
+
+        //now to actually print it to the console
+        for(int col = 0; col < width; ++col)
+        {
+            for(int row = 0; row < height; ++row)
+            {
+                Console.Write(map[col, row]);
+            }
+
+            Console.WriteLine();
+        }
     }
 }
 
