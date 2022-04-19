@@ -340,8 +340,8 @@ class Dungeon
             Door leftDoor = new Door(splitPoint, Split(room.bottomWall, room.topWall, doorVariance), true);
             Door rightDoor = new Door(splitPoint, Split(room.bottomWall, room.topWall, doorVariance), true);
 
-            leftDoor.AssignDoor(rightDoor);
-            rightDoor.AssignDoor(leftDoor);
+            leftDoor.AssignOtherDoor(rightDoor);
+            rightDoor.AssignOtherDoor(leftDoor);
 
             leftRoom.doors.Add(leftDoor);
             rightRoom.doors.Add(rightDoor);
@@ -383,8 +383,8 @@ class Dungeon
             Door bottomDoor = new Door(Split(room.leftWall, room.rightWall, doorVariance), splitPoint, false);
             Door topDoor = new Door(Split(room.leftWall, room.rightWall, doorVariance), splitPoint, false);
 
-            bottomDoor.AssignDoor(topDoor);
-            topDoor.AssignDoor(bottomDoor);
+            bottomDoor.AssignOtherDoor(topDoor);
+            topDoor.AssignOtherDoor(bottomDoor);
 
             bottomRoom.AddDoor(bottomDoor);
             topRoom.AddDoor(topDoor);
@@ -407,7 +407,7 @@ class Dungeon
         //value, which will depend on the purposes for which the function is being used
         midPoint += randomVariance * variance * (max - min) / 2;
 
-        return (int) Math.Round(midPoint, 0);
+        return (int) midPoint;
     }
 
     //function for drawing the map to the console
@@ -444,15 +444,15 @@ class Dungeon
             //place horizontal lines for tops and bottoms of rooms, ignoring corners
             for(int col = left + 1; col < right; ++col)
             {
-                map[col, bottom] = '-';
-                map[col, top] = '-';
+                map[col, bottom] = '|';
+                map[col, top] = '|';
             }
 
             //place vertical lines for sides of rooms, ignoring corners
             for(int row = bottom + 1; row < top; ++row)
             {
-                map[left, row] = '|';
-                map[right, row] = '|';
+                map[left, row] = '-';
+                map[right, row] = '-';
             }
 
             //fill rooms with empty space
@@ -488,6 +488,37 @@ class Dungeon
                 int col = door.x;
                 int row = door.y;
 
+                //system for fixing rounding errors by checking adjacent tiles
+                if(col > 0 && col < width - 1)
+                {
+                    if(map[col, row - 1] != '-' || map[col, row + 1] != '-')
+                    {
+                        if(map[col - 1, row] == '-')
+                        {
+                            col--;
+                        }
+                        else
+                        {
+                            col++;
+                        }
+                    }
+                }
+
+                if(row > 0 && row < height - 1)
+                {
+                    if(map[col - 1, row] != '|' || map[col + 1, row] != '|')
+                    {
+                        if(map[col, row - 1] == '|')
+                        {
+                            row--;
+                        }
+                        else
+                        {
+                            row++;
+                        }
+                    }
+                }
+
                 if(door.horizontal)
                 {
                     map[col, row] = 'I';
@@ -496,6 +527,8 @@ class Dungeon
                 {
                     map[col, row] = 'H';
                 }
+
+                ConnectDoors(map, door);
             }
         }
 
@@ -508,6 +541,102 @@ class Dungeon
             }
 
             Console.WriteLine();
+        }
+    }
+
+    static void ConnectDoors(char[,] map, Door door)
+    {
+        if(door.horizontal)
+        {
+            int midPoint = door.divDim;
+
+            int fromCol = door.x;
+            int toCol = door.GetOtherDoor().x;
+
+            int fromRow = door.y;
+            int toRow = door.GetOtherDoor().y;
+
+            if(fromCol > toCol)
+            {
+                int temp = fromCol;
+                fromCol = toCol;
+                toCol = temp;
+
+                temp = fromRow;
+                fromRow = toRow;
+                toRow = temp;
+            }
+            
+            fromRow++;
+            toRow++;
+
+            for(int col = fromCol + 1; col <= midPoint; ++col)
+            {
+                map[col, fromRow] = 'O';
+            }
+
+            for(int col = midPoint; col < toCol; ++col)
+            {
+                map[col, toRow] = 'O';
+            }
+
+            if(fromRow > toRow)
+            {
+                int temp = fromRow;
+                fromRow = toRow;
+                toRow = temp;
+            }
+
+            for(int row = fromRow + 1; row < toRow; ++row)
+            {
+                map[midPoint, row] = 'O';
+            }
+        }
+        else
+        {
+            int mid = door.divDim;
+
+            int fromCol = door.x;
+            int toCol = door.GetOtherDoor().x;
+
+            int fromRow = door.y;
+            int toRow = door.GetOtherDoor().y;
+
+            if (fromRow > toRow)
+            {
+                int temp = fromCol;
+                fromCol = toCol;
+                toCol = temp;
+
+                temp = fromRow;
+                fromRow = toRow;
+                toRow = temp;
+            }
+
+            fromCol++;
+            toCol++;
+
+            for (int row = fromRow + 1; row <= mid; ++row)
+            {
+                map[fromCol, row] = 'O';
+            }
+
+            for (int row = mid; row < toRow; ++row)
+            {
+                map[toCol, row] = 'O';
+            }
+
+            if (fromCol > toCol)
+            {
+                int temp = fromCol;
+                fromCol = toCol;
+                toCol = temp;
+            }
+
+            for (int col = fromCol + 1; col < toCol; ++col)
+            {
+                map[col, mid] = 'O';
+            }
         }
     }
 
@@ -605,10 +734,10 @@ class Room
 
 class Door
 {
-    //door x,y positions are completely public because they made need to be changed
+    //door variables are completely public because they made need to be changed
     public int x;
     public int y;
-    private int divDim;
+    public int divDim;
 
     public bool horizontal { get; }
 
@@ -630,8 +759,13 @@ class Door
         }
     }
 
-    public void AssignDoor(Door other)
+    public void AssignOtherDoor(Door other)
     {
         this.other = other;
+    }
+
+    public Door GetOtherDoor()
+    {
+        return other;
     }
 }
