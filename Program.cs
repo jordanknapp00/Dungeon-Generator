@@ -407,7 +407,7 @@ class Dungeon
         //value, which will depend on the purposes for which the function is being used
         midPoint += randomVariance * variance * (max - min) / 2;
 
-        return (int) Math.Round(midPoint, 0);
+        return (int) midPoint;
     }
 
     //function for drawing the map to the console
@@ -444,15 +444,15 @@ class Dungeon
             //place horizontal lines for tops and bottoms of rooms, ignoring corners
             for(int col = left + 1; col < right; ++col)
             {
-                map[col, bottom] = '-';
-                map[col, top] = '-';
+                map[col, bottom] = '|';
+                map[col, top] = '|';
             }
 
             //place vertical lines for sides of rooms, ignoring corners
             for(int row = bottom + 1; row < top; ++row)
             {
-                map[left, row] = '|';
-                map[right, row] = '|';
+                map[left, row] = '-';
+                map[right, row] = '-';
             }
 
             //fill rooms with empty space
@@ -487,6 +487,40 @@ class Dungeon
             {
                 int col = door.x;
                 int row = door.y;
+
+                //implement system for fixing rounding errors please?
+                if(col > 0 && col < width - 1)
+                {
+                    //if the area above or below is not a vertical wall piece
+                    if(map[col, row - 1] != '-' || map[col, row + 1] != '-')
+                    {
+                        //if the area to the left is a wall, then move this door one to the left
+                        if(map[col - 1, row] == '-')
+                        {
+                            col--;
+                        }
+                        //otherwise, move it to the right
+                        else
+                        {
+                            col++;
+                        }
+                    }
+                }
+
+                if(row > 0 && row < height - 1)
+                {
+                    if(map[col - 1, row] != '|' || map[col + 1, row] != '|')
+                    {
+                        if(map[col, row - 1] == '|')
+                        {
+                            row--;
+                        }
+                        else
+                        {
+                            row++;
+                        }
+                    }
+                }
 
                 if(door.horizontal)
                 {
