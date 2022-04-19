@@ -5,11 +5,11 @@ class Dungeon
     private static int seed;
     private static System.Random random = new Random();
 
-    private static float splitVariance = 0f;    //used to determine variance in bsp splits
-    private static float sizeVariance = 0f;     //used to determine variance in room size
-    private static float doorVariance = 0f;     //used to determine variance in door location
+    private static float splitVariance = .5f;    //used to determine variance in bsp splits
+    private static float sizeVariance = .5f;     //used to determine variance in room size
+    private static float doorVariance = .5f;     //used to determine variance in door location
 
-    private static int minSize = 3;             //minimum size for rooms in any dimension
+    private static int minSize = 4;             //minimum size for rooms in any dimension
 
     private static int depth = 4;               //depth of recursion for bsp algorithm
 
@@ -22,8 +22,49 @@ class Dungeon
 
     static void Main(string[] args)
     {
-        Console.WriteLine("These are the arguments you've supplied:");
-        
+        //the following is a list of arguments the program will accept
+        //
+        //note that for all of the variance arguments (splitvar, sizevar, doorvar), both float and
+        //string values are accepted. if a float value between 0 and 1 is given, it will be used.
+        //otherwise, "none" will set it to 0, "low" will set it to .25, "med" will set it to .5,
+        //"high" will set it to .75, and "max" will set it to 1
+        //
+        // arg          params  : description
+        //
+        // -size        x y     : sets width to x and height to y
+        // -depth       d       : sets recursive depth to d
+        // -seed        s       : sets the seed to s (if no seed is given, a random one is used)
+        // -splitvar    spv     : sets the split variance to spv
+        // -sizevar     szv     : sets the size variance to szv
+        // -doorvar     dv      : sets the door variance to dv
+        // -minsize     ms      : sets the minimum room size on either axis to ms
+        //
+        // -help                : if it's the first arg, everything else will be ignored and the
+        //                        above info will be printed out
+
+        if(args.Length > 0 && args[0] == "-help")
+        {
+            Console.WriteLine("Dungeon Generator v1.0 Help:");
+            Console.WriteLine("");
+            Console.WriteLine("Format:");
+            Console.WriteLine("Arg          Params  : Description");
+            Console.WriteLine("");
+            Console.WriteLine("-size        x y     : sets width to x and height to y (default 80 80)");
+            Console.WriteLine("-depth       d       : sets recursive depth to d (default 4)");
+            Console.WriteLine("-seed        s       : sets seed to s (defaults to a random value)");
+            Console.WriteLine("-minsize     ms      : sets minimum room size (on either axis) to ms (default 4)");
+            Console.WriteLine("");
+            Console.WriteLine("For the following commands, both decimal and string values are accepted.");
+            Console.WriteLine("If a decimal value between 0 and 1 is provided, it will be used. Otherwise,");
+            Console.WriteLine("you can use 'none', 'low', 'med', 'high', and 'max'.");
+            Console.WriteLine("The default for all of these is 'med'.");
+            Console.WriteLine("");
+            Console.WriteLine("-splitvar    spv     : sets the split variance to spv");
+            Console.WriteLine("-sizevar     szv     : sets the size variance to szv");
+            Console.WriteLine("-doorvar     dv      : sets the door variance to dv");
+            return;
+        }
+
         foreach(string str in args)
         {
             Console.WriteLine(str);
