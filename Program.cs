@@ -282,15 +282,62 @@ class Dungeon
         //for each room, shrink it horizontally and vertically by some amount, based on
         //sizeVariance
         foreach(Room room in rooms)
-        {
-            Console.WriteLine("Room initial dimensions:");
-            Console.WriteLine("Left: " + room.leftWall + ", Right: " + room.rightWall + ", Bottom: " + room.bottomWall + ", Top: " + room.topWall);
-            
-            //the shrinking algorithm will go here
+        {    
+            //shrink horizontally first
+            float horizScale = (float) (1 - sizeVariance * random.NextDouble());
+            float width = room.rightWall - room.leftWall;
+            float newWidth = horizScale * width;
 
-            Console.WriteLine("Room post-shrink dimensions:");
-            Console.WriteLine("Left: " + room.leftWall + ", Right: " + room.rightWall + ", Bottom: " + room.bottomWall + ", Top: " + room.topWall);
-            Console.WriteLine();
+            //at minimum, each room will be made 2 units smaller, to create minimum space between
+            //each room
+            if (width - newWidth < 2)
+            {
+                newWidth = width - 2;
+            }
+
+            //but at the same time, rooms must conform to the minimum size
+            if (newWidth < minSize)
+            {
+                newWidth = minSize;
+            }
+
+            float centerWidth = (room.rightWall + room.leftWall) / 2;
+
+            room.rightWall = (int) (centerWidth + newWidth / 2);
+            room.leftWall = (int) (centerWidth - newWidth / 2);
+
+            //now do the same process, but vertically
+            float vertScale = (float)(1 - sizeVariance * random.NextDouble());
+            float height = room.topWall - room.bottomWall;
+            float newHeight = vertScale * height;
+
+            if (height - newHeight < 2)
+            {
+                newHeight = height - 2;
+            }
+
+            if (newHeight < minSize)
+            {
+                newHeight = minSize;
+            }
+
+            float centerHeight = (room.topWall + room.bottomWall) / 2;
+
+            room.topWall = (int) (centerHeight + newHeight / 2);
+            room.bottomWall = (int) (centerHeight - newHeight / 2);
+
+            horizScale = newWidth / width;
+            vertScale = newHeight / height;
+
+            //need to also adjust the doors so they're always inside a wall
+            foreach (Door door in room.doors)
+            {
+                float doorOffsetX = door.x - centerWidth;
+                door.x = (int) (horizScale * doorOffsetX + centerWidth);
+
+                float doorOffsetY = door.y - centerHeight;
+                door.y = (int) (vertScale * doorOffsetY + centerHeight);
+            }
         }
     }
 }
