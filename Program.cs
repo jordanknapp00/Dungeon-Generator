@@ -5,16 +5,20 @@ class Dungeon
     private static int seed;
     private static System.Random random = new Random();
 
-    private static float splitVariance = 0f;
-    private static float sizeVariance = 0f;
-    private static float doorVariance = 0f;
+    private static float splitVariance = 0f;    //used to determine variance in bsp splits
+    private static float sizeVariance = 0f;     //used to determine variance in room size
+    private static float doorVariance = 0f;     //used to determine variance in door location
 
-    private static int depth = 4;
+    private static int minSize = 3;             //minimum size for rooms in any dimension
+
+    private static int depth = 4;               //depth of recursion for bsp algorithm
 
     private static int width = 80;
     private static int height = 40;
 
     private static List<Room> rooms = new List<Room>();
+
+    private static char currID = 'A';         //used to assign unique id to each room
 
     static void Main(string[] args)
     {
@@ -24,17 +28,34 @@ class Dungeon
         {
             Console.WriteLine(str);
         }
+
+        //we start with a room that's the size of the entire area. it will be subdivided
+        Room startRoom = new Room(0, width - 1, 0, height - 1);
+
+        BinarySpacePartition(startRoom, depth);
+    }
+
+    static void BinarySpacePartition(Room room, int levelsToGo)
+    {
+        //check base cases first
+        //stop when we've reached the desired depth, or if the current room reached the min size
+        if(levelsToGo == depth || room.rightWall - room.leftWall < minSize || room.topWall - room.bottomWall < minSize)
+        {
+            room.id = currID++;
+            rooms.Add(room);
+            return;
+        }
     }
 }
 
 class Room
 {
-    private int leftWall;
-    private int rightWall;
-    private int topWall;
-    private int bottomWall;
+    public int leftWall { get; }
+    public int rightWall { get; }
+    public int topWall { get; }
+    public int bottomWall { get; }
 
-    private char id;
+    public char id;
 
     private List<Door> doors;
 
@@ -75,7 +96,7 @@ class Door
         }
     }
 
-    public void assignDoor(Door other)
+    public void AssignDoor(Door other)
     {
         this.other = other;
     }
