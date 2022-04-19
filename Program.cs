@@ -2,8 +2,8 @@
 
 class Dungeon
 {
-    private static int seed;
-    private static System.Random random = new Random();
+    private static int seed = Environment.TickCount;
+    private static System.Random random = new Random(seed);
 
     private static float splitVariance = .5f;    //used to determine variance in bsp splits
     private static float sizeVariance = .5f;     //used to determine variance in room size
@@ -22,27 +22,42 @@ class Dungeon
 
     static void Main(string[] args)
     {
-        //the following is a list of arguments the program will accept
-        //
-        //note that for all of the variance arguments (splitvar, sizevar, doorvar), both float and
-        //string values are accepted. if a float value between 0 and 1 is given, it will be used.
-        //otherwise, "none" will set it to 0, "low" will set it to .25, "med" will set it to .5,
-        //"high" will set it to .75, and "max" will set it to 1
-        //
-        // arg          params  : description
-        //
-        // -size        x y     : sets width to x and height to y
-        // -depth       d       : sets recursive depth to d
-        // -seed        s       : sets the seed to s (if no seed is given, a random one is used)
-        // -splitvar    spv     : sets the split variance to spv
-        // -sizevar     szv     : sets the size variance to szv
-        // -doorvar     dv      : sets the door variance to dv
-        // -minsize     ms      : sets the minimum room size on either axis to ms
-        //
-        // -help                : if it's the first arg, everything else will be ignored and the
-        //                        above info will be printed out
+        //parse any command line inputs, if there are any
+        if(args.Length > 0)
+        {
+            ParseInput(args);
+        }
 
-        if(args.Length > 0 && args[0] == "-help")
+        Console.WriteLine("GENERATING NEW DUNGEON...");
+        Console.WriteLine("Parameters (copy these parameters to save your dungeon):");
+        Console.WriteLine("Size:\t\t\t" + width + "x" + height);
+        Console.WriteLine("Depth:\t\t\t" + depth);
+        Console.WriteLine("Seed:\t\t\t" + seed);
+        Console.WriteLine("Minsize:\t\t" + minSize);
+        Console.WriteLine("Split variance:\t" + splitVariance);
+        Console.WriteLine("Size variance:\t" + sizeVariance);
+        Console.WriteLine("Door variance:\t" + doorVariance);
+
+        //this is absolutely the stupidest way to do it, but i must've screwed up somewhere and
+        //gotten width and height mixed up (sigh). so basically, we're just gonna swap 'em and
+        //act like nothing's wrong.
+        int temp = width;
+        width = height;
+        height = temp;
+
+        //we start with a room that's the size of the entire area. it will be subdivided
+        Room startRoom = new Room(0, width - 1, 0, height - 1);
+
+        BinarySpacePartition(startRoom, depth);
+
+        Shrink();
+
+        Draw();
+    }
+
+    static void ParseInput(string[] args)
+    {
+        if(args[0] == "-help")
         {
             Console.WriteLine("Dungeon Generator v1.0 Help:");
             Console.WriteLine("");
@@ -72,7 +87,6 @@ class Dungeon
         int index = 0;
         while(index < args.Length)
         {
-            Console.WriteLine("Parsing argument " + args[index]);
             switch(args[index])
             {
                 case "-size":
@@ -81,7 +95,6 @@ class Dungeon
                         width = Int32.Parse(args[index + 1]);
                         height = Int32.Parse(args[index + 2]);
                         index++; //must increment index one additional amount
-                        Console.WriteLine("Set the size to " + width + "x" + height);
                     }
                     catch(FormatException)
                     {
@@ -93,7 +106,6 @@ class Dungeon
                     try
                     {
                         depth = Int32.Parse(args[index + 1]);
-                        Console.WriteLine("Set the depth to " + depth);
                     }
                     catch(FormatException)
                     {
@@ -106,7 +118,6 @@ class Dungeon
                     {
                         seed = Int32.Parse(args[index + 1]);
                         random = new Random(seed);
-                        Console.WriteLine("Set the seed to " + seed);
                     }
                     catch(FormatException)
                     {
@@ -118,7 +129,6 @@ class Dungeon
                     try
                     {
                         minSize = Int32.Parse(args[index + 1]);
-                        Console.WriteLine("Set the min size to " + minSize);
                     }
                     catch(FormatException)
                     {
@@ -130,27 +140,22 @@ class Dungeon
                     if(args[index + 1] == "none")
                     {
                         splitVariance = 0f;
-                        Console.WriteLine("Set the splitVariance to 'none', or 0");
                     }
                     else if(args[index + 1] == "low")
                     {
                         splitVariance = .25f;
-                        Console.WriteLine("Set the splitVariance to 'low', or .25");
                     }
                     else if(args[index + 1] == "med")
                     {
                         splitVariance = .5f;
-                        Console.WriteLine("Set the splitVariance to 'med', or .5");
                     }
                     else if(args[index + 1] == "high")
                     {
                         splitVariance = .75f;
-                        Console.WriteLine("Set the splitVariance to 'high', or .75");
                     }
                     else if(args[index + 1] == "max")
                     {
                         splitVariance = 1f;
-                        Console.WriteLine("Set the splitVariance to 'max', or 1");
                     }
                     else
                     {
@@ -161,8 +166,6 @@ class Dungeon
                             {
                                 throw new FormatException();
                             }
-
-                            Console.WriteLine("Set the splitVariance to " + splitVariance);
                         }
                         catch(FormatException)
                         {
@@ -175,27 +178,22 @@ class Dungeon
                     if(args[index + 1] == "none")
                     {
                         sizeVariance = 0f;
-                        Console.WriteLine("Set the sizeVariance to 'none', or 0");
                     }
                     else if(args[index + 1] == "low")
                     {
                         sizeVariance = .25f;
-                        Console.WriteLine("Set the sizeVariance to 'low', or .25");
                     }
                     else if(args[index + 1] == "med")
                     {
                         sizeVariance = .5f;
-                        Console.WriteLine("Set the sizeVariance to 'med', or .5");
                     }
                     else if(args[index + 1] == "high")
                     {
                         sizeVariance = .75f;
-                        Console.WriteLine("Set the sizeVariance to 'high', or .75");
                     }
                     else if(args[index + 1] == "max")
                     {
                         sizeVariance = 1f;
-                        Console.WriteLine("Set the sizeVariance to 'max', or 1");
                     }
                     else
                     {
@@ -206,8 +204,6 @@ class Dungeon
                             {
                                 throw new FormatException();
                             }
-
-                            Console.WriteLine("Set the sizeVariance to " + splitVariance);
                         }
                         catch(FormatException)
                         {
@@ -220,27 +216,22 @@ class Dungeon
                     if(args[index + 1] == "none")
                     {
                         doorVariance = 0f;
-                        Console.WriteLine("Set the doorVariance to 'none', or 0");
                     }
                     else if(args[index + 1] == "low")
                     {
                         doorVariance = .25f;
-                        Console.WriteLine("Set the doorVariance to 'low', or .25");
                     }
                     else if(args[index + 1] == "med")
                     {
                         doorVariance = .5f;
-                        Console.WriteLine("Set the doorVariance to 'med', or .5");
                     }
                     else if(args[index + 1] == "high")
                     {
                         doorVariance = .75f;
-                        Console.WriteLine("Set the doorVariance to 'high', or .75");
                     }
                     else if(args[index + 1] == "max")
                     {
                         doorVariance = 1f;
-                        Console.WriteLine("Set the doorVariance to 'max', or 1");
                     }
                     else
                     {
@@ -251,8 +242,6 @@ class Dungeon
                             {
                                 throw new FormatException();
                             }
-
-                            Console.WriteLine("Set the doorVariance to " + doorVariance);
                         }
                         catch(FormatException)
                         {
@@ -268,22 +257,6 @@ class Dungeon
 
             index += 2;
         }
-
-        //this is absolutely the stupidest way to do it, but i must've screwed up somewhere and
-        //gotten width and height mixed up (sigh). so basically, we're just gonna swap 'em and
-        //act like nothing's wrong.
-        int temp = width;
-        width = height;
-        height = temp;
-
-        //we start with a room that's the size of the entire area. it will be subdivided
-        Room startRoom = new Room(0, width - 1, 0, height - 1);
-
-        BinarySpacePartition(startRoom, depth);
-
-        Shrink();
-
-        Draw();
     }
 
     static void InvalidInput(String arg, String value, bool noVal)
