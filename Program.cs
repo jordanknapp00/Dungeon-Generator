@@ -46,11 +46,12 @@ class Dungeon
         {
             Console.WriteLine("Dungeon Generator v1.0 Help:");
             Console.WriteLine("");
-            Console.WriteLine("Format:");
             Console.WriteLine("Arg          Params  : Description");
             Console.WriteLine("");
             Console.WriteLine("-size        x y     : sets width to x and height to y (default 80 80)");
             Console.WriteLine("-depth       d       : sets recursive depth to d (default 4)");
+            Console.WriteLine("                       depth determines how many rooms are generated. there will");
+            Console.WriteLine("                       be 2^depth rooms");
             Console.WriteLine("-seed        s       : sets seed to s (defaults to a random value)");
             Console.WriteLine("-minsize     ms      : sets minimum room size (on either axis) to ms (default 4)");
             Console.WriteLine("");
@@ -62,12 +63,210 @@ class Dungeon
             Console.WriteLine("-splitvar    spv     : sets the split variance to spv");
             Console.WriteLine("-sizevar     szv     : sets the size variance to szv");
             Console.WriteLine("-doorvar     dv      : sets the door variance to dv");
+            Console.WriteLine("");
+            Console.WriteLine("Note: It is best to redirect your output to a file!");
+            Console.WriteLine("Use the '>' operator after the executable, and enter a filename to write to.");
             return;
         }
 
-        foreach(string str in args)
+        int index = 0;
+        while(index < args.Length)
         {
-            Console.WriteLine(str);
+            Console.WriteLine("Parsing argument " + args[index]);
+            switch(args[index])
+            {
+                case "-size":
+                    try
+                    {
+                        width = Int32.Parse(args[index + 1]);
+                        height = Int32.Parse(args[index + 2]);
+                        index++; //must increment index one additional amount
+                        Console.WriteLine("Set the size to " + width + "x" + height);
+                    }
+                    catch(FormatException)
+                    {
+                        InvalidInput(args[index], "", false);
+                        return;
+                    }
+                    break;
+                case "-depth":
+                    try
+                    {
+                        depth = Int32.Parse(args[index + 1]);
+                        Console.WriteLine("Set the depth to " + depth);
+                    }
+                    catch(FormatException)
+                    {
+                        InvalidInput(args[index], args[index + 1], false);
+                        return;
+                    }
+                    break;
+                case "-seed":
+                    try
+                    {
+                        seed = Int32.Parse(args[index + 1]);
+                        random = new Random(seed);
+                        Console.WriteLine("Set the seed to " + seed);
+                    }
+                    catch(FormatException)
+                    {
+                        InvalidInput(args[index], args[index + 1], false);
+                        return;
+                    }
+                    break;
+                case "-minsize":
+                    try
+                    {
+                        minSize = Int32.Parse(args[index + 1]);
+                        Console.WriteLine("Set the min size to " + minSize);
+                    }
+                    catch(FormatException)
+                    {
+                        InvalidInput(args[index], args[index + 1], false);
+                        return;
+                    }
+                    break;
+                case "-splitvar":
+                    if(args[index + 1] == "none")
+                    {
+                        splitVariance = 0f;
+                        Console.WriteLine("Set the splitVariance to 'none', or 0");
+                    }
+                    else if(args[index + 1] == "low")
+                    {
+                        splitVariance = .25f;
+                        Console.WriteLine("Set the splitVariance to 'low', or .25");
+                    }
+                    else if(args[index + 1] == "med")
+                    {
+                        splitVariance = .5f;
+                        Console.WriteLine("Set the splitVariance to 'med', or .5");
+                    }
+                    else if(args[index + 1] == "high")
+                    {
+                        splitVariance = .75f;
+                        Console.WriteLine("Set the splitVariance to 'high', or .75");
+                    }
+                    else if(args[index + 1] == "max")
+                    {
+                        splitVariance = 1f;
+                        Console.WriteLine("Set the splitVariance to 'max', or 1");
+                    }
+                    else
+                    {
+                        try
+                        {
+                            splitVariance = float.Parse(args[index + 1]);
+                            if(splitVariance < 0 || splitVariance > 1)
+                            {
+                                throw new FormatException();
+                            }
+
+                            Console.WriteLine("Set the splitVariance to " + splitVariance);
+                        }
+                        catch(FormatException)
+                        {
+                            InvalidInput(args[index], args[index + 1], false);
+                            return;
+                        }
+                    }
+                    break;
+                case "-sizevar":
+                    if(args[index + 1] == "none")
+                    {
+                        sizeVariance = 0f;
+                        Console.WriteLine("Set the sizeVariance to 'none', or 0");
+                    }
+                    else if(args[index + 1] == "low")
+                    {
+                        sizeVariance = .25f;
+                        Console.WriteLine("Set the sizeVariance to 'low', or .25");
+                    }
+                    else if(args[index + 1] == "med")
+                    {
+                        sizeVariance = .5f;
+                        Console.WriteLine("Set the sizeVariance to 'med', or .5");
+                    }
+                    else if(args[index + 1] == "high")
+                    {
+                        sizeVariance = .75f;
+                        Console.WriteLine("Set the sizeVariance to 'high', or .75");
+                    }
+                    else if(args[index + 1] == "max")
+                    {
+                        sizeVariance = 1f;
+                        Console.WriteLine("Set the sizeVariance to 'max', or 1");
+                    }
+                    else
+                    {
+                        try
+                        {
+                            sizeVariance = float.Parse(args[index + 1]);
+                            if(sizeVariance < 0 || sizeVariance > 1)
+                            {
+                                throw new FormatException();
+                            }
+
+                            Console.WriteLine("Set the sizeVariance to " + splitVariance);
+                        }
+                        catch(FormatException)
+                        {
+                            InvalidInput(args[index], args[index + 1], false);
+                            return;
+                        }
+                    }
+                    break;
+                case "-doorvar":
+                    if(args[index + 1] == "none")
+                    {
+                        doorVariance = 0f;
+                        Console.WriteLine("Set the doorVariance to 'none', or 0");
+                    }
+                    else if(args[index + 1] == "low")
+                    {
+                        doorVariance = .25f;
+                        Console.WriteLine("Set the doorVariance to 'low', or .25");
+                    }
+                    else if(args[index + 1] == "med")
+                    {
+                        doorVariance = .5f;
+                        Console.WriteLine("Set the doorVariance to 'med', or .5");
+                    }
+                    else if(args[index + 1] == "high")
+                    {
+                        doorVariance = .75f;
+                        Console.WriteLine("Set the doorVariance to 'high', or .75");
+                    }
+                    else if(args[index + 1] == "max")
+                    {
+                        doorVariance = 1f;
+                        Console.WriteLine("Set the doorVariance to 'max', or 1");
+                    }
+                    else
+                    {
+                        try
+                        {
+                            doorVariance = float.Parse(args[index + 1]);
+                            if(doorVariance < 0 || doorVariance > 1)
+                            {
+                                throw new FormatException();
+                            }
+
+                            Console.WriteLine("Set the doorVariance to " + doorVariance);
+                        }
+                        catch(FormatException)
+                        {
+                            InvalidInput(args[index], args[index + 1], false);
+                            return;
+                        }
+                    }
+                    break;
+                default:
+                    InvalidInput(args[index], "", true);
+                    return;
+            }
+
+            index += 2;
         }
 
         //this is absolutely the stupidest way to do it, but i must've screwed up somewhere and
@@ -85,6 +284,27 @@ class Dungeon
         Shrink();
 
         Draw();
+    }
+
+    static void InvalidInput(String arg, String value, bool noVal)
+    {
+        TextWriter errorWriter = Console.Error;
+
+        if(noVal)
+        {
+            errorWriter.WriteLine("ERROR: Invalid argument '" + arg + "'");
+        }
+        //slightly different error message for -size
+        else if(arg == "-size")
+        {
+            errorWriter.WriteLine("ERROR: Invalid parameters for '-size'");
+        }
+        else
+        {
+            errorWriter.WriteLine("ERROR: Parameter '" + value + "' is not valid for arg '" + arg + "'");
+        }
+        
+        return;
     }
 
     static void BinarySpacePartition(Room room, int levelsToGo)
