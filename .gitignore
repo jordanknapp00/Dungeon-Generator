@@ -133,3 +133,6 @@ $RECYCLE.BIN/
 .DS_Store
 
 _NCrunch*
+
+# Folder I created with the .dll and .exe and stuff
+runnable/
