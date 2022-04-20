@@ -28,7 +28,6 @@ class Dungeon
             ParseInput(args);
         }
 
-        Console.WriteLine("GENERATING NEW DUNGEON...");
         Console.WriteLine("Parameters (copy these parameters to save your dungeon):");
         Console.WriteLine("Size:\t\t\t" + width + "x" + height);
         Console.WriteLine("Depth:\t\t\t" + depth);
@@ -37,6 +36,13 @@ class Dungeon
         Console.WriteLine("Split variance:\t" + splitVariance);
         Console.WriteLine("Size variance:\t" + sizeVariance);
         Console.WriteLine("Door variance:\t" + doorVariance);
+        Console.WriteLine("");
+        Console.WriteLine("OR, better yet, just copy the arguments directly:");
+        Console.WriteLine("-size " + width + " " + height + " -depth " + depth + " -seed " + seed + " -minsize " + minSize +
+            " -splitvar " + splitVariance + " -sizevar " + sizeVariance + " -doorvar " + doorVariance);
+        Console.WriteLine("");
+        Console.WriteLine("Here's your dungeon:");
+        Console.WriteLine("");
 
         //this is absolutely the stupidest way to do it, but i must've screwed up somewhere and
         //gotten width and height mixed up (sigh). so basically, we're just gonna swap 'em and
@@ -766,6 +772,8 @@ class Door
 
     public Door GetOtherDoor()
     {
+        #pragma warning disable CS8603 //ignore the potential null return
         return other;
+        #pragma warning restore CS8603
     }
 }
