@@ -25,7 +25,13 @@ class Dungeon
         //parse any command line inputs, if there are any
         if(args.Length > 0)
         {
-            ParseInput(args);
+            //if ParseInput() returns 1, then the program must exit
+            //this happens if the "-help" parameter is included anywhere or if there is an error
+            //in the users parameters
+            if(ParseInput(args) == 1)
+            {
+                return;
+            }
         }
 
         Console.WriteLine("Parameters (copy these parameters to save your dungeon):");
@@ -38,8 +44,8 @@ class Dungeon
         Console.WriteLine("Door variance:\t" + doorVariance);
         Console.WriteLine("");
         Console.WriteLine("OR, better yet, just copy the arguments directly:");
-        Console.WriteLine("-size " + width + " " + height + " -depth " + depth + " -seed " + seed + " -minsize " + minSize +
-            " -splitvar " + splitVariance + " -sizevar " + sizeVariance + " -doorvar " + doorVariance);
+        Console.WriteLine("-size " + width + " " + height + " -depth " + depth + " -minsize " + minSize +
+            " -splitvar " + splitVariance + " -sizevar " + sizeVariance + " -doorvar " + doorVariance + " -seed " + seed);
         Console.WriteLine("");
         Console.WriteLine("Here's your dungeon:");
         Console.WriteLine("");
@@ -61,40 +67,37 @@ class Dungeon
         Draw();
     }
 
-    static void ParseInput(string[] args)
+    static int ParseInput(string[] args)
     {
-        if(args[0] == "-help")
-        {
-            Console.WriteLine("Dungeon Generator v1.0 Help:");
-            Console.WriteLine("");
-            Console.WriteLine("Arg          Params  : Description");
-            Console.WriteLine("");
-            Console.WriteLine("-size        x y     : sets width to x and height to y (default 80 80)");
-            Console.WriteLine("-depth       d       : sets recursive depth to d (default 4)");
-            Console.WriteLine("                       depth determines how many rooms are generated. there will");
-            Console.WriteLine("                       be 2^depth rooms");
-            Console.WriteLine("-seed        s       : sets seed to s (defaults to a random value)");
-            Console.WriteLine("-minsize     ms      : sets minimum room size (on either axis) to ms (default 4)");
-            Console.WriteLine("");
-            Console.WriteLine("For the following commands, both decimal and string values are accepted.");
-            Console.WriteLine("If a decimal value between 0 and 1 is provided, it will be used. Otherwise,");
-            Console.WriteLine("you can use 'none', 'low', 'med', 'high', and 'max'.");
-            Console.WriteLine("The default for all of these is 'med'.");
-            Console.WriteLine("");
-            Console.WriteLine("-splitvar    spv     : sets the split variance to spv");
-            Console.WriteLine("-sizevar     szv     : sets the size variance to szv");
-            Console.WriteLine("-doorvar     dv      : sets the door variance to dv");
-            Console.WriteLine("");
-            Console.WriteLine("Note: It is best to redirect your output to a file!");
-            Console.WriteLine("Use the '>' operator after the executable, and enter a filename to write to.");
-            return;
-        }
-
         int index = 0;
         while(index < args.Length)
         {
             switch(args[index])
             {
+                case "-help":
+                    Console.WriteLine("Dungeon Generator v1.0 Help:");
+                    Console.WriteLine("");
+                    Console.WriteLine("Arg          Params  : Description");
+                    Console.WriteLine("");
+                    Console.WriteLine("-size        x y     : sets width to x and height to y (default 80 80)");
+                    Console.WriteLine("-depth       d       : sets recursive depth to d (default 4)");
+                    Console.WriteLine("                       depth determines how many rooms are generated. there will");
+                    Console.WriteLine("                       be 2^depth rooms");
+                    Console.WriteLine("-seed        s       : sets seed to s (defaults to a random value)");
+                    Console.WriteLine("-minsize     ms      : sets minimum room size (on either axis) to ms (default 4)");
+                    Console.WriteLine("");
+                    Console.WriteLine("For the following commands, both decimal and string values are accepted.");
+                    Console.WriteLine("If a decimal value between 0 and 1 is provided, it will be used. Otherwise,");
+                    Console.WriteLine("you can use 'none', 'low', 'med', 'high', and 'max'.");
+                    Console.WriteLine("The default for all of these is 'med'.");
+                    Console.WriteLine("");
+                    Console.WriteLine("-splitvar    spv     : sets the split variance to spv");
+                    Console.WriteLine("-sizevar     szv     : sets the size variance to szv");
+                    Console.WriteLine("-doorvar     dv      : sets the door variance to dv");
+                    Console.WriteLine("");
+                    Console.WriteLine("Note: It is best to redirect your output to a file!");
+                    Console.WriteLine("Use the '>' operator after the executable, and enter a filename to write to.");
+                    return 1;
                 case "-size":
                     try
                     {
@@ -105,7 +108,7 @@ class Dungeon
                     catch(FormatException)
                     {
                         InvalidInput(args[index], "", false);
-                        return;
+                        return 1;
                     }
                     break;
                 case "-depth":
@@ -116,7 +119,7 @@ class Dungeon
                     catch(FormatException)
                     {
                         InvalidInput(args[index], args[index + 1], false);
-                        return;
+                        return 1;
                     }
                     break;
                 case "-seed":
@@ -128,7 +131,7 @@ class Dungeon
                     catch(FormatException)
                     {
                         InvalidInput(args[index], args[index + 1], false);
-                        return;
+                        return 1;
                     }
                     break;
                 case "-minsize":
@@ -139,7 +142,7 @@ class Dungeon
                     catch(FormatException)
                     {
                         InvalidInput(args[index], args[index + 1], false);
-                        return;
+                        return 1;
                     }
                     break;
                 case "-splitvar":
@@ -176,7 +179,7 @@ class Dungeon
                         catch(FormatException)
                         {
                             InvalidInput(args[index], args[index + 1], false);
-                            return;
+                            return 1;
                         }
                     }
                     break;
@@ -214,7 +217,7 @@ class Dungeon
                         catch(FormatException)
                         {
                             InvalidInput(args[index], args[index + 1], false);
-                            return;
+                            return 1;
                         }
                     }
                     break;
@@ -252,17 +255,19 @@ class Dungeon
                         catch(FormatException)
                         {
                             InvalidInput(args[index], args[index + 1], false);
-                            return;
+                            return 1;
                         }
                     }
                     break;
                 default:
                     InvalidInput(args[index], "", true);
-                    return;
+                    return 1;
             }
 
             index += 2;
         }
+
+        return 0;
     }
 
     static void InvalidInput(String arg, String value, bool noVal)
