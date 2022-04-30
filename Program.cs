@@ -303,7 +303,7 @@ class Dungeon
         //the one being split
         if(room.rightWall - room.leftWall > room.topWall - room.bottomWall)
         {
-            int splitPoint = Split(room.leftWall, room.rightWall, splitVariance);
+            float splitPoint = Split(room.leftWall, room.rightWall, splitVariance);
 
             //using the split point, make two new rooms split down the line along that point
             Room leftRoom = new Room(room.leftWall, splitPoint, room.bottomWall, room.topWall);
@@ -360,7 +360,7 @@ class Dungeon
         {
             //split across the opposite dimension. the code here is largely the same as above, just
             //doing things in the x direction instead of y
-            int splitPoint = Split(room.bottomWall, room.topWall, splitVariance);
+            float splitPoint = Split(room.bottomWall, room.topWall, splitVariance);
 
             Room bottomRoom = new Room(room.leftWall, room.rightWall, room.bottomWall, splitPoint);
             Room topRoom = new Room(room.leftWall, room.rightWall, splitPoint, room.topWall);
@@ -400,7 +400,7 @@ class Dungeon
         }
     }
 
-    static int Split(int min, int max, float variance)
+    static float Split(float min, float max, float variance)
     {
         //get our random variance value, the amount from which we're deviating from the center
         //with no variance, we will always split right down the middle of a room.
@@ -413,7 +413,7 @@ class Dungeon
         //value, which will depend on the purposes for which the function is being used
         midPoint += randomVariance * variance * (max - min) / 2;
 
-        return (int) midPoint;
+        return midPoint;
     }
 
     //function for drawing the map to the console
@@ -442,10 +442,10 @@ class Dungeon
 
         foreach(Room room in rooms)
         {
-            int left = room.leftWall;
-            int right = room.rightWall;
-            int bottom = room.bottomWall;
-            int top = room.topWall;
+            int left = (int) room.leftWall;
+            int right = (int) room.rightWall;
+            int bottom = (int) room.bottomWall;
+            int top = (int) room.topWall;
 
             //place horizontal lines for tops and bottoms of rooms, ignoring corners
             for(int col = left + 1; col < right; ++col)
@@ -474,10 +474,10 @@ class Dungeon
         //apply corner tile for each room, as well as room name in the middle
         foreach(Room room in rooms)
         {
-            int left = room.leftWall;
-            int right = room.rightWall;
-            int bottom = room.bottomWall;
-            int top = room.topWall;
+            int left = (int) room.leftWall;
+            int right = (int) room.rightWall;
+            int bottom = (int) room.bottomWall;
+            int top = (int) room.topWall;
 
             map[left, bottom] = '+';
             map[right, bottom] = '+';
@@ -491,39 +491,8 @@ class Dungeon
         {
             foreach(Door door in room.doors)
             {
-                int col = door.x;
-                int row = door.y;
-
-                //system for fixing rounding errors by checking adjacent tiles
-                if(col > 0 && col < width - 1)
-                {
-                    if(map[col, row - 1] != '-' || map[col, row + 1] != '-')
-                    {
-                        if(map[col - 1, row] == '-')
-                        {
-                            col--;
-                        }
-                        else
-                        {
-                            col++;
-                        }
-                    }
-                }
-
-                if(row > 0 && row < height - 1)
-                {
-                    if(map[col - 1, row] != '|' || map[col + 1, row] != '|')
-                    {
-                        if(map[col, row - 1] == '|')
-                        {
-                            row--;
-                        }
-                        else
-                        {
-                            row++;
-                        }
-                    }
-                }
+                int col = (int) door.x;
+                int row = (int) door.y;
 
                 if(door.horizontal)
                 {
@@ -554,13 +523,14 @@ class Dungeon
     {
         if(door.horizontal)
         {
-            int midPoint = door.divDim;
+            int midPoint = (int) door.divDim;
 
-            int fromCol = door.x;
-            int toCol = door.GetOtherDoor().x;
+            int fromCol = (int) door.x;
+            int toCol = (int) door.GetOtherDoor().x;
 
-            int fromRow = door.y;
-            int toRow = door.GetOtherDoor().y;
+            //for whatever reason, horizontal doors are always one row off
+            int fromRow = (int) door.y - 1;
+            int toRow = (int) door.GetOtherDoor().y - 1;
 
             if(fromCol > toCol)
             {
@@ -600,13 +570,14 @@ class Dungeon
         }
         else
         {
-            int mid = door.divDim;
+            int mid = (int) door.divDim;
 
-            int fromCol = door.x;
-            int toCol = door.GetOtherDoor().x;
+            //vertical doors are always one column off
+            int fromCol = (int) door.x - 1;
+            int toCol = (int) door.GetOtherDoor().x - 1;
 
-            int fromRow = door.y;
-            int toRow = door.GetOtherDoor().y;
+            int fromRow = (int) door.y;
+            int toRow = (int) door.GetOtherDoor().y;
 
             if (fromRow > toRow)
             {
@@ -672,8 +643,8 @@ class Dungeon
 
             float centerWidth = (room.rightWall + room.leftWall) / 2;
 
-            room.rightWall = (int) (centerWidth + newWidth / 2);
-            room.leftWall = (int) (centerWidth - newWidth / 2);
+            room.rightWall = (centerWidth + newWidth / 2);
+            room.leftWall = (centerWidth - newWidth / 2);
 
             //now do the same process, but vertically
             float vertScale = (float)(1 - sizeVariance * random.NextDouble());
@@ -692,8 +663,8 @@ class Dungeon
 
             float centerHeight = (room.topWall + room.bottomWall) / 2;
 
-            room.topWall = (int) (centerHeight + newHeight / 2);
-            room.bottomWall = (int) (centerHeight - newHeight / 2);
+            room.topWall = (centerHeight + newHeight / 2);
+            room.bottomWall = (centerHeight - newHeight / 2);
 
             horizScale = newWidth / width;
             vertScale = newHeight / height;
@@ -702,10 +673,10 @@ class Dungeon
             foreach (Door door in room.doors)
             {
                 float doorOffsetX = door.x - centerWidth;
-                door.x = (int) (horizScale * doorOffsetX + centerWidth);
+                door.x = horizScale * doorOffsetX + centerWidth;
 
                 float doorOffsetY = door.y - centerHeight;
-                door.y = (int) (vertScale * doorOffsetY + centerHeight);
+                door.y = vertScale * doorOffsetY + centerHeight;
             }
         }
     }
@@ -713,16 +684,16 @@ class Dungeon
 
 class Room
 {
-    public int leftWall;
-    public int rightWall;
-    public int topWall;
-    public int bottomWall;
+    public float leftWall;
+    public float rightWall;
+    public float topWall;
+    public float bottomWall;
 
     public char id;
 
     public List<Door> doors { get; }
 
-    public Room(int leftWall, int rightWall, int bottomWall, int topWall)
+    public Room(float leftWall, float rightWall, float bottomWall, float topWall)
     {
         this.leftWall = leftWall;
         this.rightWall = rightWall;
@@ -741,15 +712,15 @@ class Room
 class Door
 {
     //door variables are completely public because they made need to be changed
-    public int x;
-    public int y;
-    public int divDim;
+    public float x;
+    public float y;
+    public float divDim;
 
     public bool horizontal { get; }
 
     private Door? other; //a door always must connect to another door
 
-    public Door(int x, int y, bool horizontal)
+    public Door(float x, float y, bool horizontal)
     {
         this.x = x;
         this.y = y;
