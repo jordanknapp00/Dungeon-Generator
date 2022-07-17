@@ -64,9 +64,3 @@ When you run the program, the dungeon will be printed to your console, or redire
 You will see that each room is labeled with a letter. The letters simply ASCII values which are incremented for each room. So it'll run through the capital and lowercase letters, and then start using various symbols if your dungeon is partiuclarly large. Maybe this isn't ideal, but it does succeed in producing a unique identifier for each room. You can see an example of this phenomenon in the [big example file](big.txt).
 
 Each room will have one or more doors. Along vertical axes, doors are represented by an ```H``` character, while along horizontal axes, they're an ```I```. This is meant to somewhat mimic the look of the original Rogue. There also is a pathway or corridor connecting pairs of doors. These are represented by a sequence of ```O```'s.
-
-## Planned for Later Versions:
-
-- Randomly-placed enemies according to some kind of difficulty setting
-- Treasure chests
-- Traps
