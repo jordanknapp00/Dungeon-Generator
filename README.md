@@ -22,7 +22,7 @@ From the project directory, you can use ```dotnet run``` to compile and run the 
 
 ### Run the .exe
 
-If you have an executable version of the program (which is available on [my website](https://www.jordanknapp.net)), then simply run the ```dungen.exe``` file on the command line as you would any other. Arguments and parameters can be placed after the name of the executable. For example:
+If you have an executable version of the program (which is available on [my website](https://www.jordanknapp.net) or the releases page here on GitHub), then simply run the ```dungen.exe``` file on the command line as you would any other. Arguments and parameters can be placed after the name of the executable. For example:
 
 ```dungen -size 96 54 -depth 3 -minsize 3 -splitvar max -sizevar high -doorvar .33```
 
