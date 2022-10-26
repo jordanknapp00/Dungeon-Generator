@@ -65,8 +65,6 @@ You will see that each room is labeled with a letter. The letters simply ASCII v
 
 Each room will have one or more doors. Along vertical axes, doors are represented by an ```H``` character, while along horizontal axes, they're an ```I```. This is meant to somewhat mimic the look of the original Rogue. There also is a pathway or corridor connecting pairs of doors. These are represented by a sequence of ```O```'s.
 
-## Planned for Later Versions:
+# License
 
-- Randomly-placed enemies according to some kind of difficulty setting
-- Treasure chests
-- Traps
+This project uses the [FPA General Code License](https://about.fairfieldprogramming.org/licenses/code/). In short, you can do whatever you want with this code for non-commerical purposes. In order to use this code for commerical purposes, you must make substantial changes to it. Reorganizing the logic does not count as a substantial change. See [LICENSE.md](LICENSE.md) or the link above for more details.
